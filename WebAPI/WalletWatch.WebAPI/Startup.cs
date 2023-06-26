@@ -36,7 +36,7 @@ namespace WalletWatch.WebAPI
             {
                 config.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
                 {
-                    Title = "FaceLockWebAPI",
+                    Title = "WalletWatchAPI",
                     Version = "v1",
                     Description = "More information will follow later"
                 });
@@ -86,7 +86,7 @@ namespace WalletWatch.WebAPI
             app.UseSwaggerUI(config =>
             {
                 config.RoutePrefix = "swagger";
-                config.SwaggerEndpoint("/swagger/v1/swagger.json", "FaceLockWebAPI");
+                config.SwaggerEndpoint("/swagger/v1/swagger.json", "WalletWatchAPI");
             });
 
             app.UseCors();
