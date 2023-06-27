@@ -6,6 +6,10 @@ using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Reflection;
 using System;
+using WalletWatch.EF;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using WalletWatch.Domain.Entities.UserAggregate;
 
 namespace WalletWatch.WebAPI
 {
@@ -20,6 +24,40 @@ namespace WalletWatch.WebAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<WalletWatchDbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            // Add identity
+            services.AddIdentity<User, IdentityRole>(config =>
+            {
+                config.Password.RequireNonAlphanumeric = false;
+                config.Password.RequireUppercase = false;
+                config.Password.RequireLowercase = false;
+            })
+                .AddEntityFrameworkStores<WalletWatchDbContext>()
+                .AddDefaultTokenProviders();
+
+            // Configure identity options
+            services.Configure<IdentityOptions>(options =>
+            {
+                // Password settings
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 8;
+                options.Password.RequiredUniqueChars = 1;
+
+                // Lockout settings
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+                options.Lockout.MaxFailedAccessAttempts = 10;
+                options.Lockout.AllowedForNewUsers = true;
+
+                // User settings
+                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                options.User.RequireUniqueEmail = true;
+            });
+
             // Add CORS policy
             services.AddCors(options =>
             {
