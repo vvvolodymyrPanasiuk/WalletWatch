@@ -14,7 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <Folder Include="Models\UserModels\Response\" />
+    <Folder Include="Models\UserModels\Request\" />
   </ItemGroup>
 
   <ItemGroup>
