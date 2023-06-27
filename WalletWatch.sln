@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWatch.Domain", "Domain\WalletWatch.Domain\WalletWatch.Domain.csproj", "{421E4082-C18B-4DA3-97BF-9763B89AD3C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,12 +33,17 @@ Global
 		{B57ACE53-D7AA-476F-B8C5-7874E2C8D580}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B57ACE53-D7AA-476F-B8C5-7874E2C8D580}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B57ACE53-D7AA-476F-B8C5-7874E2C8D580}.Release|Any CPU.Build.0 = Release|Any CPU
+		{421E4082-C18B-4DA3-97BF-9763B89AD3C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{421E4082-C18B-4DA3-97BF-9763B89AD3C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{421E4082-C18B-4DA3-97BF-9763B89AD3C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{421E4082-C18B-4DA3-97BF-9763B89AD3C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B57ACE53-D7AA-476F-B8C5-7874E2C8D580} = {C470B3D2-8E5D-4D69-BEFF-C9E53E5730AF}
+		{421E4082-C18B-4DA3-97BF-9763B89AD3C8} = {69B84BBA-8B28-47C1-B542-22FDD4F1DD96}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6440A59C-D3D8-4738-9AF7-0147489E570B}
