@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 export class User {
   id?: number;
   email?: string;
-  username?: string;
   password?: string;
   firstName?: string;
   lastName?: string;
@@ -28,8 +27,8 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.loginForm = this.formBuilder.group({
-      email: [''],
-      password: ['']
+      email: ['', Validators.required],
+      password: ['', [Validators.required, Validators.minLength(6)]]
     })
   }
 
