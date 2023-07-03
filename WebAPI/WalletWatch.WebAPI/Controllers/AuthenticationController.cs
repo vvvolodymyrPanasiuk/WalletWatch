@@ -61,7 +61,7 @@ namespace WalletWatch.WebAPI.Controllers
                     }
 
                     // If user was created successfully, return status 201
-                    return StatusCode(StatusCodes.Status201Created, $"Welcome, {model.FirstName} {model.LastName}!");
+                    return StatusCode(StatusCodes.Status201Created);
                 }
                 catch (AuthenticationException ex)
                 {
