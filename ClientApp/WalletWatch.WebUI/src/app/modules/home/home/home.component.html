@@ -1,0 +1,14 @@
+<p>home works!</p>
+
+<div *ngIf="isAuth; else notAuthorized">
+  <h2>Welcome, {{ firstName }} {{ lastName }}!</h2>
+  <p>User ID: {{ userId }}</p>
+  <p>Email: {{ email }}</p>
+  <p>Username: {{ userName }}</p>
+  <p>Subscription Status: {{ subscriptionStatus }}</p>
+</div>
+
+<ng-template #notAuthorized>
+  <h2>You are not authorized.</h2>
+  <p>Please <a routerLink="/login">login</a>.</p>
+</ng-template>

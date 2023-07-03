@@ -1,0 +1,21 @@
+<header>
+  <h1>Wallet Watch</h1>
+  <nav>
+    <ul>
+      <li><a [routerLink]="['/home']" href="#">Home</a></li>
+      <li><a href="#">Accounts</a></li>
+      <li><a href="#">Transactions</a></li>
+      <li><a href="#">Budget</a></li>
+      <li><a href="#">Settings</a></li>
+      <li *ngIf="isAuth">
+        <a (click)="logout()" class="login-button" href="#">Logout</a>
+      </li>
+      <li *ngIf="!isAuth">
+        <a [routerLink]="['/login']" class="login-button" href="#">Login</a>
+      </li>
+      <li *ngIf="!isAuth">
+        <a [routerLink]="['/register']" class="register-button" href="#">Register</a>
+      </li>
+    </ul>
+  </nav>
+</header>
