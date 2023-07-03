@@ -34,6 +34,18 @@ namespace WalletWatch.WebAPI.Controllers
         }
 
 
+        // POST: api/v{version:apiVersion}/<AuthenticationController>/register
+        /// <summary>
+        /// User registration
+        /// </summary>
+        /// <param name="model">User data to be registered</param>
+        /// <returns>Returns status 201 (Created) if the user was registered successfully or an error message.</returns>
+        /// <response code="201">Returns status 201 (Created) if the user was registered successfully.</response>
+        /// <response code="400">If the model state is not valid or there was an authentication exception.</response>
+        /// <response code="500">If an error occurred during the operation.</response>
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(string))]
         [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest model)
@@ -86,7 +98,20 @@ namespace WalletWatch.WebAPI.Controllers
             return BadRequest(ModelState);
         }
 
+        //TODO: responce must jwt token for auth
 
+        // POST: api/v{version:apiVersion}/<AuthenticationController>/login
+        /// <summary>
+        /// Login a user
+        /// </summary>
+        /// <param name="model">User credentials required for login</param>   
+        /// <returns>Returns status 200 (OK) with access and refresh tokens if authentication was successful or an error message.</returns>
+        /// <response code="200">Returns status 200 (OK) with access and refresh tokens if authentication was successful.</response>
+        /// <response code="400">If the model state is not valid or the user metadata is invalid.</response>
+        /// <response code="500">If an error occurred during the operation or the tokens are invalid.</response>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(string))]
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest model)
