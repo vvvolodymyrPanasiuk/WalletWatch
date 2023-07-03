@@ -13,7 +13,9 @@ using Microsoft.Extensions.Logging;
 
 namespace WalletWatch.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [Produces("application/json")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {

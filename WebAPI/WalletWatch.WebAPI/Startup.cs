@@ -12,6 +12,11 @@ using Microsoft.AspNetCore.Identity;
 using WalletWatch.Domain.Entities.UserAggregate;
 using Microsoft.Extensions.Logging;
 using WalletWatch.WebAPI.Middleware;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
 namespace WalletWatch.WebAPI
 {
@@ -78,49 +83,25 @@ namespace WalletWatch.WebAPI
             });
 
             // Register the Swagger services
-            services.AddSwaggerGen(config =>
+            services.AddVersionedApiExplorer(options =>
+                options.GroupNameFormat = "'v'VVV");
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+            services.AddSwaggerGen();
+
+            //Add API versioning
+            services.AddApiVersioning(options =>
             {
-                config.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-                {
-                    Title = "WalletWatchAPI",
-                    Version = "v1",
-                    Description = "More information will follow later"
-                });
-
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                config.IncludeXmlComments(xmlPath);
-
-                config.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-                {
-                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-                    Description = "Please insert token",
-                    Name = "Authorization",
-                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-                    BearerFormat = "JWT",
-                    Scheme = "Bearer"
-                });
-                config.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-                {
-                    {
-                        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-                        {
-                            Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                            {
-                                Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        new string[]{}
-                    }
-                });
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.ReportApiVersions = true;
+                options.ApiVersionReader = new UrlSegmentApiVersionReader();
             });
 
             // Add API controllers
             services.AddControllers();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
             if (env.IsDevelopment())
             {
@@ -132,8 +113,13 @@ namespace WalletWatch.WebAPI
             app.UseSwagger();
             app.UseSwaggerUI(config =>
             {
-                config.RoutePrefix = "swagger";
-                config.SwaggerEndpoint("/swagger/v1/swagger.json", "WalletWatchAPI");
+                foreach (var description in provider.ApiVersionDescriptions)
+                {
+                    config.SwaggerEndpoint(
+                        $"/swagger/{description.GroupName}/swagger.json",
+                        description.GroupName.ToUpperInvariant());
+                    config.RoutePrefix = "swagger";
+                }
             });
 
             app.UseCors();
@@ -145,6 +131,8 @@ namespace WalletWatch.WebAPI
             // Add authentication and authorization
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseApiVersioning();
 
             app.UseEndpoints(endpoints =>
             {
