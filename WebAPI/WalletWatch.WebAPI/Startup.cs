@@ -10,6 +10,8 @@ using WalletWatch.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using WalletWatch.Domain.Entities.UserAggregate;
+using Microsoft.Extensions.Logging;
+using WalletWatch.WebAPI.Middleware;
 
 namespace WalletWatch.WebAPI
 {
@@ -56,6 +58,12 @@ namespace WalletWatch.WebAPI
                 // User settings
                 options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
                 options.User.RequireUniqueEmail = true;
+            });
+
+            // Add logging
+            services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.AddConsole();
             });
 
             // Add CORS policy
@@ -117,6 +125,7 @@ namespace WalletWatch.WebAPI
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseMiddleware<RequestLoggingMiddleware>();
             }
 
             // Register the Swagger generator and the Swagger UI middlewares

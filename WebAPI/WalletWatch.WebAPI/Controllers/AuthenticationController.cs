@@ -9,6 +9,7 @@ using WalletWatch.Domain.Entities.UserAggregate;
 using WalletWatch.WebAPI.Models.AuthenticationModels.Request;
 using System.Linq;
 using WalletWatch.WebAPI.Models.AuthenticationModels.Response;
+using Microsoft.Extensions.Logging;
 
 namespace WalletWatch.WebAPI.Controllers
 {
@@ -18,10 +19,16 @@ namespace WalletWatch.WebAPI.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-        public AuthenticationController(UserManager<User> userManager, SignInManager<User> signInManager)
+        private readonly ILogger<AuthenticationController> _logger;
+
+        public AuthenticationController(
+            UserManager<User> userManager, 
+            SignInManager<User> signInManager,
+            ILogger<AuthenticationController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _logger = logger;
         }
 
 
@@ -38,7 +45,6 @@ namespace WalletWatch.WebAPI.Controllers
                     var existingUser = await _userManager.FindByEmailAsync(model.Email);
                     if (existingUser != null)
                     {
-                        Console.WriteLine($"Failed to register user: A user with this login already exists.", ConsoleColor.Red);
                         throw new AuthenticationException("A user with this email already exists.");
                     }
                     
@@ -56,7 +62,6 @@ namespace WalletWatch.WebAPI.Controllers
                     if (!result.Succeeded)
                     {
                         var errorMessage = string.Join("; ", result.Errors.Select(e => e.Description));
-                        Console.WriteLine($"Failed to register user {user.UserName}: {errorMessage}", ConsoleColor.Red);
                         throw new Exception(errorMessage);
                     }
 
@@ -66,13 +71,13 @@ namespace WalletWatch.WebAPI.Controllers
                 catch (AuthenticationException ex)
                 {
                     // Handle authentication exception and return 400 response
-                    Console.WriteLine($"Authorization: {ex.Message}", ConsoleColor.Red);
+                    _logger.LogWarning($"Authorization error: {ex.Message}");
                     return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
                 }
                 catch (Exception ex)
                 {
                     // Log error and return 500 response
-                    Console.WriteLine($"Error: {ex.Message}", ConsoleColor.Red);
+                    _logger.LogCritical($"Error: {ex.Message}");
                     return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
                 }
             }
@@ -93,7 +98,6 @@ namespace WalletWatch.WebAPI.Controllers
                     // If user not found, return authorization error
                     if (user == null)
                     {
-                        Console.WriteLine($"User with login {model.Email} not found", ConsoleColor.Red);
                         throw new AuthenticationException("Invalid login or password");
                     }
 
@@ -101,7 +105,6 @@ namespace WalletWatch.WebAPI.Controllers
                     var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
                     if (!result.Succeeded)
                     {
-                        Console.WriteLine($"Failed to authenticate user with login {model.Email}", ConsoleColor.Red);
                         throw new AuthenticationException("Invalid username or password");
                     }
 
@@ -119,13 +122,13 @@ namespace WalletWatch.WebAPI.Controllers
                 catch (AuthenticationException ex)
                 {
                     // Handle authentication exception and return 400 response
-                    Console.WriteLine($"Authorization: {ex.Message}", ConsoleColor.Red);
+                    _logger.LogWarning($"Authorization: {ex.Message}");
                     return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
                 }
                 catch (Exception ex)
                 {
                     // Log error and return 500 response
-                    Console.WriteLine($"Error: {ex.Message}", ConsoleColor.Red);
+                    _logger.LogCritical($"Error: {ex.Message}");
                     return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
                 }
             }
