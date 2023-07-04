@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.IO;
-using System.Reflection;
 using System;
 using WalletWatch.EF;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +15,8 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using HealthChecks.UI.Client;
+using WalletWatch.WebAPI.HealthChecks;
 
 namespace WalletWatch.WebAPI
 {
@@ -99,6 +99,12 @@ namespace WalletWatch.WebAPI
 
             // Add API controllers
             services.AddControllers();
+
+            // Add health checks
+            services.AddHealthChecks()
+                //.AddCheck<ApiHealthCheck>(nameof(ApiHealthCheck))
+                .AddCheck<MemoryHealthCheck>(nameof(MemoryHealthCheck))
+                .AddCheck<SqlHealthCheck>(nameof(SqlHealthCheck));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
@@ -137,6 +143,11 @@ namespace WalletWatch.WebAPI
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+
+                endpoints.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions()
+                {
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                });
             });
         }
     }
