@@ -17,32 +17,68 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using HealthChecks.UI.Client;
 using WalletWatch.WebAPI.HealthChecks;
+using System.Linq;
+using WalletWatch.EF.MySql;
+using Microsoft.FeatureManagement;
 
 namespace WalletWatch.WebAPI
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
+            _env = env;
+
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddEnvironmentVariables();
+            Configuration = builder.Build();
+            
             Configuration = configuration;
         }
 
+        public Microsoft.AspNetCore.Hosting.IHostingEnvironment _env;
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<WalletWatchDbContext>(options =>
+            services.AddAzureAppConfiguration();
+            services.AddFeatureManagement();
+
+            //Ckeck environment of project
+            if (_env.IsDevelopment())
+            {
+                services.AddDbContext<WalletWatchDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            // Add identity
-            services.AddIdentity<User, IdentityRole>(config =>
+                // Add identity
+                services.AddIdentity<User, IdentityRole>(config =>
+                {
+                    config.Password.RequireNonAlphanumeric = false;
+                    config.Password.RequireUppercase = false;
+                    config.Password.RequireLowercase = false;
+                })
+                    .AddEntityFrameworkStores<WalletWatchDbContext>()
+                    .AddDefaultTokenProviders();
+
+            }
+            else
             {
-                config.Password.RequireNonAlphanumeric = false;
-                config.Password.RequireUppercase = false;
-                config.Password.RequireLowercase = false;
-            })
-                .AddEntityFrameworkStores<WalletWatchDbContext>()
-                .AddDefaultTokenProviders();
+                services.AddDbContext<WalletWatchMySqlDbContext>(options =>
+                options.UseMySql(Configuration["DefaultConnection"], new MySqlServerVersion(new Version(8, 0))));
+
+                // Add identity
+                services.AddIdentity<User, IdentityRole>(config =>
+                {
+                    config.Password.RequireNonAlphanumeric = false;
+                    config.Password.RequireUppercase = false;
+                    config.Password.RequireLowercase = false;
+                })
+                    .AddEntityFrameworkStores<WalletWatchMySqlDbContext>()
+                    .AddDefaultTokenProviders();
+            }
 
             // Configure identity options
             services.Configure<IdentityOptions>(options =>
@@ -96,7 +132,7 @@ namespace WalletWatch.WebAPI
                 options.ReportApiVersions = true;
                 options.ApiVersionReader = new UrlSegmentApiVersionReader();
             });
-
+        
             // Add API controllers
             services.AddControllers();
 
@@ -114,7 +150,19 @@ namespace WalletWatch.WebAPI
                 app.UseDeveloperExceptionPage();
                 app.UseMiddleware<RequestLoggingMiddleware>();
             }
-
+            else
+            {
+                using (var serviceScope = app.ApplicationServices.CreateScope())
+                {
+                    var services = serviceScope.ServiceProvider;
+                    var dbContext = services.GetRequiredService<WalletWatchMySqlDbContext>();
+                    if (dbContext.Database.GetPendingMigrations().Any())
+                    {
+                        dbContext.Database.Migrate();
+                    }
+                }
+            }
+                
             // Register the Swagger generator and the Swagger UI middlewares
             app.UseSwagger();
             app.UseSwaggerUI(config =>
@@ -134,6 +182,7 @@ namespace WalletWatch.WebAPI
             app.UseRouting();
             app.UseStaticFiles();
 
+            app.UseAzureAppConfiguration();
             // Add authentication and authorization
             app.UseAuthentication();
             app.UseAuthorization();

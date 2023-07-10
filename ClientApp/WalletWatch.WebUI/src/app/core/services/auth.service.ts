@@ -1,3 +1,4 @@
+import { environment } from './../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
@@ -7,7 +8,7 @@ import { Observable, Subject } from 'rxjs';
 })
 export class AuthService {
 
-  private apiUrl = 'https://localhost:5001/api/Authentication';
+  private apiUrl = environment.apiUrl + '/Authentication';
   authChange = new Subject<boolean>();
 
   constructor(private http: HttpClient) { }
