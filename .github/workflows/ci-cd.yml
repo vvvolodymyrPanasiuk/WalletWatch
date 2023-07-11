@@ -1,0 +1,97 @@
+name: Build, Test, and Deploy 🚀
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+         
+env:
+  AZURE_WEBAPP_NAME_WEB_API: wallet-watch-web-api
+  AZURE_WEBAPP_PACKAGE_PATH_WEB_API: "./publish/WebAPI"
+  AZURE_WEBAPP_NAME_HEALTH_CHECK: wallet-watch-health-check
+  AZURE_WEBAPP_PACKAGE_PATH_HEALTH_CHECK: "./publish/HealthCheck"
+  AZURE_WEBAPP_NAME_CLIENT_UI: walletwatch
+  AZURE_WEBAPP_PACKAGE_PATH_CLIENT_UI: ".ClientApp/WalletWatch.WebUI/dist"
+  
+jobs:
+  
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+          
+      - name: Restore
+        run: dotnet restore .WebAPI/WalletWatch.WebAPI/WalletWatch.WebAPI.csproj
+             dotnet restore .Services/WalletWatch.Monitoring/WalletWatch.Monitoring.csproj
+             dotnet restore .ClientApp/WalletWatch.WebUI/WalletWatch.WebUI.esproj
+             dotnet restore .Tests/WalletWatch.WebAPI.Tests/WalletWatch.WebAPI.Tests.csproj
+
+      - name: Build
+        run: dotnet build .WebAPI/WalletWatch.WebAPI/WalletWatch.WebAPI.csproj --configuration Release --no-restore'
+             dotnet build .Services/WalletWatch.Monitoring/WalletWatch.Monitoring.csproj --configuration Release --no-restore'
+             dotnet build .ClientApp/WalletWatch.WebUI/WalletWatch.WebUI.esproj --configuration Release --no-restore'
+             dotnet build .Tests/WalletWatch.WebAPI.Tests/WalletWatch.WebAPI.Tests.csproj --configuration Release --no-restore'
+
+      - name: Run Tests
+        run: dotnet test .Tests/WalletWatch.WebAPI.Tests/WalletWatch.WebAPI.Tests.csproj --no-restore --verbosity normal --configuration Release
+
+      - name: Publish Web API
+        run: dotnet publish .WebAPI/WalletWatch.WebAPI/WalletWatch.WebAPI.csproj --configuration Release --no-build --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH_WEB_API }}'
+
+      - name: Publish Health Check
+        run: dotnet publish .Services/WalletWatch.Monitoring/WalletWatch.Monitoring.csproj --configuration Release --no-build --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH_HEALTH_CHECK }}'
+
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          
+      - name: Publish Angular Client
+        run: |
+          cd ClientApp/WalletWatch.WebUI
+          npm install
+          npm ci
+          npm run build --prod
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ClientApp
+          path: '${{ env.AZURE_WEBAPP_PACKAGE_PATH_CLIENT_UI }}'
+          
+ 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Web API to Azure
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME_WEB_API }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_WEB_API }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH_WEB_API }}    
+          
+      - name: Deploy Health Check to Azure
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME_HEALTH_CHECK }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_HEALTH_CHECK }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH_HEALTH_CHECK }}
+
+      - name: Deploy Angular Client to Azure
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME_CLIENT_UI }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_CLIENT_UI }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH_CLIENT_UI }}
