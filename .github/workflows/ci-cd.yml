@@ -53,9 +53,9 @@ jobs:
         run: dotnet publish ./Services/WalletWatch.Monitoring/WalletWatch.Monitoring.csproj --configuration Release --no-build --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH_HEALTH_CHECK }}'
 
       - name: Install Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v1
         with:
-          node-version: '16'
+          node-version: '18.x'
           
       - name: Publish Angular Client
         run: |
