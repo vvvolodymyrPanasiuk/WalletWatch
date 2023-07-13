@@ -15,7 +15,7 @@ env:
   AZURE_WEBAPP_NAME_HEALTH_CHECK: wallet-watch-health-check
   AZURE_WEBAPP_PACKAGE_PATH_HEALTH_CHECK: "./publish/HealthCheck"
   AZURE_WEBAPP_NAME_CLIENT_UI: walletwatch
-  AZURE_WEBAPP_PACKAGE_PATH_CLIENT_UI: "./ClientApp/WalletWatch.WebUI/dist"
+  AZURE_WEBAPP_PACKAGE_PATH_CLIENT_UI: "./ClientApp/WalletWatch.WebUI/dist/wallet-watch.web-ui"
   
 jobs:
   
@@ -55,14 +55,14 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: '18.x'
+          node-version: '16.x'
           
       - name: Publish Angular Client
         run: |
           cd ClientApp/WalletWatch.WebUI
           npm install
           npm ci
-          npm run build --prod
+          npm run build --if-present
       
       - name: Archive Angular Client
         uses: actions/upload-artifact@v2
