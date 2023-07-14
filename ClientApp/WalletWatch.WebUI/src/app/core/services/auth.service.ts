@@ -8,7 +8,7 @@ import { Observable, Subject } from 'rxjs';
 })
 export class AuthService {
 
-  private apiUrl = environment.apiUrl + '/Authentication';
+  private apiUrl = environment.apiUrl + '/v1/Authentication';
   authChange = new Subject<boolean>();
 
   constructor(private http: HttpClient) { }
